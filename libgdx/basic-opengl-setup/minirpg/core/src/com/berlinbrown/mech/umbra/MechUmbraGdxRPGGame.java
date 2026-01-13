@@ -81,11 +81,17 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
 
     private MainHUDScreen hudScreen;
 
+    // Model group below part of bottom grid instances
     private ModelBatch modelBatchGroup;
-    private Model modelGroup;
+    private Model modelGroupBoxGrid;
+
+    // Model player new box square
+    private Model boxModelNewPlayer;
+    private ModelInstance boxModelNewPlayerInstance;
+
+    // Part of simple players
     private List<ModelInstance> boxInstances;
     private ModelInstance triangleInstancePlayerOne;
-
     private ModelInstance triangleInstancePlayerTwo;
 
     private Model cubeModel;
@@ -279,7 +285,6 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
             triangleInstancePlayerTwo = new ModelInstance(triangleModelPlayerTwo);
             triangleInstancePlayerTwo.transform.setToTranslation(0f, -3.6f, 4.0f);
             triangleInstancePlayerTwo.transform.rotate(0.0f, 1, 0.0f, 180.0f);
-
         }
 
         // Stage
@@ -360,27 +365,44 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
         multiplexer.addProcessor(keyboardProcessor);
         Gdx.input.setInputProcessor(multiplexer);
 
+        // Create player box with rotating 8, 4, 6, 2 APPROACH (replace wasd)
+        boxModelNewPlayer = modelBuilder.createBox(0.4f, 8.4f, 0.4f,
+                new Material(ColorAttribute.createDiffuse(Color.FOREST)),
+                Usage.Position | Usage.Normal);
+        boxModelNewPlayerInstance = new ModelInstance(boxModelNewPlayer);
+        boxModelNewPlayerInstance.transform.setToTranslation(0.0f, 0.0f, 0.0f);
+
         // Create a group of boxes
         final ModelBuilder modelBuilderGroup = new ModelBuilder();
-        modelGroup = modelBuilder.createBox(2f, 1f, 2f,
+        modelGroupBoxGrid = modelBuilder.createBox(2f, 0.2f, 2f,
                 new Material(ColorAttribute.createDiffuse(Color.YELLOW)),
                 Usage.Position | Usage.Normal);
 
-        // Create 40 boxes along the X and Z axes
+        // Create 40 boxes along the X and Z axes (yellow) - bottom part of world environment
         boxInstances = new ArrayList<>();
-        for (int i = 0; i < 8; i++) {
-            final ModelInstance box = new ModelInstance(modelGroup);
+        for (int i = 0; i < 6; i++) {
+            final ModelInstance box = new ModelInstance(modelGroupBoxGrid);
             //float x = i * 2f;
             float x = 0;
             float z = i * 4.2f;
             box.transform.setToTranslation(x, -8.2f, z);
             boxInstances.add(box);
         }
-        // Create another set, a little further along
-        for (int i = 0; i < 8; i++) {
-            final ModelInstance box = new ModelInstance(modelGroup);
+        // Create another set, a little further along (yellow)
+        for (int i = -6; i < 12; i++) {
+            final ModelInstance box = new ModelInstance(modelGroupBoxGrid);
             //float x = i * 2f;
             float x = 6;
+            float z = i * 4.2f;
+            box.transform.setToTranslation(x, -8.2f, z);
+            boxInstances.add(box);
+        }
+
+        // One more set left side (yellow)
+        for (int i = -3; i < 8; i++) {
+            final ModelInstance box = new ModelInstance(modelGroupBoxGrid);
+            //float x = i * 2f;
+            float x = -6;
             float z = i * 4.2f;
             box.transform.setToTranslation(x, -8.2f, z);
             boxInstances.add(box);
@@ -425,6 +447,8 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
     public void gameTick() {
         if (hero.isAlive() && enemy.isAlive()) {
             System.out.println("\nWhat do you want to do? (1) Attack (2) Run");
+            Gdx.app.log("MyTag", "What do you want to do? (1) Attack (2) Run");
+
             hero.attack(enemy);
 
             if (enemy.isAlive()) {
@@ -453,7 +477,7 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
         timeElapsed += delta;
 
         if (timeElapsed >= 1f) {
-            System.out.println("1 second has passed!");
+            Gdx.app.log("MyTag", "1 second has passed!");
             timeElapsed = 0f;
             counter++;
 
@@ -485,6 +509,9 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
         // Render player two
         modelBatch.render(triangleInstancePlayerTwo, lightsEnvironment);
 
+        // Render new box player
+        modelBatch.render(boxModelNewPlayerInstance, lightsEnvironment);
+
         // Rotating cube
         // Create orbiting transformation
         final Matrix4 rotation = new Matrix4().setToRotation(Vector3.Y, angle);
@@ -509,13 +536,12 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
     public void dispose() {
         modelBatch.dispose();
         model.dispose();
-        modelGroup.dispose();
+        modelGroupBoxGrid.dispose();
         hudScreen.dispose();
     }
 
     @Override
     public void resize(int width, int height) {
-
         stage.getViewport().update(width, height, true);
         // Let the HUD screen adjust to the new size
         hudScreen.resize(width, height);
