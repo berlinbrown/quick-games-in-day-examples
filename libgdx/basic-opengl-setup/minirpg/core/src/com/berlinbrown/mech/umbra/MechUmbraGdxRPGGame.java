@@ -88,6 +88,13 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
     // Model player new box square
     private Model boxModelNewPlayer;
     private ModelInstance boxModelNewPlayerInstance;
+    private Model boxModelFrontNode;
+    private ModelInstance boxModelFrontNodeInstance;
+    private final Matrix4 transformMainBoxPlayerObject = new Matrix4();
+    private final Vector3 noseOffsetBox = new Vector3(0, 0, 0.8f);
+
+    public Vector3 positionBoxPlayerVector = new Vector3();
+    public float rotationYBoxPlayer;
 
     // Part of simple players
     private List<ModelInstance> boxInstances;
@@ -112,6 +119,52 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
 
     public static String lastMessage = "";
     public static boolean onOffMsg = false;
+
+    /**
+     * Setup main player box charcter with box nose
+     */
+    private void setupMainPlayerBoxNew(final ModelBuilder modelBuilder) {
+        // Create player box with rotating 8, 4, 6, 2 APPROACH (replace wasd)
+        final float sizePlayerBox = 0.8f;
+        this.boxModelNewPlayer = modelBuilder.createBox(sizePlayerBox, sizePlayerBox, sizePlayerBox,
+                new Material(ColorAttribute.createDiffuse(Color.LIGHT_GRAY)),
+                Usage.Position | Usage.Normal);
+        this.boxModelNewPlayerInstance = new ModelInstance(boxModelNewPlayer);
+        // - old - boxModelNewPlayerInstance.transform.setToTranslation(0.0f, 8.0f, 0.0f);
+
+        // Create mini box as the front indicator
+        final float sizePlayerMiniFrontBox = 0.5f;
+        this.boxModelFrontNode = modelBuilder.createBox(sizePlayerMiniFrontBox, sizePlayerMiniFrontBox, sizePlayerMiniFrontBox,
+                new Material(ColorAttribute.createDiffuse(Color.DARK_GRAY)),
+                Usage.Position | Usage.Normal);
+        this.boxModelFrontNodeInstance = new ModelInstance(this.boxModelFrontNode);
+        // - old - boxModelFrontNodeInstance.transform.setToTranslation(0.0f, 8.0f, 1.0f);
+
+        this.positionBoxPlayerVector = new Vector3(0.0f, 6.0f, 0.0f);
+        rotationYBoxPlayer = 90.0f;
+
+        // Rotate around the Y axis
+        this.transformMainBoxPlayerObject.idt()
+                .translate(this.positionBoxPlayerVector)
+                .rotate(Vector3.Y, rotationYBoxPlayer);
+
+        this.boxModelNewPlayerInstance.transform.set(this.transformMainBoxPlayerObject);
+        this.boxModelFrontNodeInstance.transform.set(this.transformMainBoxPlayerObject).translate(this.noseOffsetBox);
+    }
+
+    private void updatePositionPlayerMove(final float pos) {
+        float speed = 2f;
+        final Vector3 forward = new Vector3(0, 0, pos);   // +Z in local space
+        positionBoxPlayerVector.add(forward.scl(speed * Gdx.graphics.getDeltaTime()));
+
+        // Set position
+        this.transformMainBoxPlayerObject.idt()
+                .translate(this.positionBoxPlayerVector)
+                .rotate(Vector3.Y, rotationYBoxPlayer);
+
+        this.boxModelNewPlayerInstance.transform.set(this.transformMainBoxPlayerObject);
+        this.boxModelFrontNodeInstance.transform.set(this.transformMainBoxPlayerObject).translate(this.noseOffsetBox);
+    }
 
     /**
      * Create various objects
@@ -301,10 +354,12 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
                 if (keycode == 46) {
                     System.out.println("Key Pressed: (R)");
                     //instance2.transform.translate(0f, 0f, 0.1f);
-                    triangleInstancePlayerOne.transform.translate(0f, 0f, 0.1f);
+                    //triangleInstancePlayerOne.transform.translate(0f, 0f, 0.1f);
+                    updatePositionPlayerMove(2.0f);
                 } else if (keycode == 34) {
                     System.out.println("Key Pressed: (F)");
-                    triangleInstancePlayerOne.transform.translate(0f, 0f, -0.1f);
+                    //triangleInstancePlayerOne.transform.translate(0f, 0f, -0.1f);
+                    updatePositionPlayerMove(-2.0f);
                 } else if (keycode == 35) {
                     System.out.println("Key Pressed: (G)");
                     showFightWidgetPopup();
@@ -365,12 +420,8 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
         multiplexer.addProcessor(keyboardProcessor);
         Gdx.input.setInputProcessor(multiplexer);
 
-        // Create player box with rotating 8, 4, 6, 2 APPROACH (replace wasd)
-        boxModelNewPlayer = modelBuilder.createBox(0.4f, 8.4f, 0.4f,
-                new Material(ColorAttribute.createDiffuse(Color.FOREST)),
-                Usage.Position | Usage.Normal);
-        boxModelNewPlayerInstance = new ModelInstance(boxModelNewPlayer);
-        boxModelNewPlayerInstance.transform.setToTranslation(0.0f, 0.0f, 0.0f);
+        // Add and setup the new main player box
+        this.setupMainPlayerBoxNew(modelBuilder);
 
         // Create a group of boxes
         final ModelBuilder modelBuilderGroup = new ModelBuilder();
@@ -511,6 +562,7 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
 
         // Render new box player
         modelBatch.render(boxModelNewPlayerInstance, lightsEnvironment);
+        modelBatch.render(boxModelFrontNodeInstance, lightsEnvironment);
 
         // Rotating cube
         // Create orbiting transformation
