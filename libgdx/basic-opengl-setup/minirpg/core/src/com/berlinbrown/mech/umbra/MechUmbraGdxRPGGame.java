@@ -94,7 +94,7 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
     private final Vector3 noseOffsetBox = new Vector3(0, 0, 0.8f);
 
     public Vector3 positionBoxPlayerVector = new Vector3();
-    public float rotationYBoxPlayer;
+    public float rotationYBoxPlayer = 0.0f;
 
     // Part of simple players
     private List<ModelInstance> boxInstances;
@@ -141,7 +141,7 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
         // - old - boxModelFrontNodeInstance.transform.setToTranslation(0.0f, 8.0f, 1.0f);
 
         this.positionBoxPlayerVector = new Vector3(0.0f, 6.0f, 0.0f);
-        rotationYBoxPlayer = 90.0f;
+        rotationYBoxPlayer = 0.0f;
 
         // Rotate around the Y axis
         this.transformMainBoxPlayerObject.idt()
@@ -156,6 +156,20 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
         float speed = 2f;
         final Vector3 forward = new Vector3(0, 0, pos);   // +Z in local space
         positionBoxPlayerVector.add(forward.scl(speed * Gdx.graphics.getDeltaTime()));
+
+        // Set position
+        this.transformMainBoxPlayerObject.idt()
+                .translate(this.positionBoxPlayerVector)
+                .rotate(Vector3.Y, rotationYBoxPlayer);
+
+        this.boxModelNewPlayerInstance.transform.set(this.transformMainBoxPlayerObject);
+        this.boxModelFrontNodeInstance.transform.set(this.transformMainBoxPlayerObject).translate(this.noseOffsetBox);
+    }
+
+    private void rotatePositionPlayer() {
+        float rotationSpeed = -90f; // degrees per second
+        //this.rotationYBoxPlayer += rotationSpeed * Gdx.graphics.getDeltaTime(); // rotates right
+        this.rotationYBoxPlayer += rotationSpeed;
 
         // Set position
         this.transformMainBoxPlayerObject.idt()
@@ -351,22 +365,20 @@ public class MechUmbraGdxRPGGame implements ApplicationListener {
             @Override
             public boolean keyDown(final int keycode) {
                 System.out.println("Key Pressed: " + keycode);
-                if (keycode == 46) {
+                if (keycode == 152) {
                     System.out.println("Key Pressed: (R)");
                     //instance2.transform.translate(0f, 0f, 0.1f);
                     //triangleInstancePlayerOne.transform.translate(0f, 0f, 0.1f);
                     updatePositionPlayerMove(2.0f);
-                } else if (keycode == 34) {
+                } else if (keycode == 146) {
                     System.out.println("Key Pressed: (F)");
                     //triangleInstancePlayerOne.transform.translate(0f, 0f, -0.1f);
                     updatePositionPlayerMove(-2.0f);
                 } else if (keycode == 35) {
                     System.out.println("Key Pressed: (G)");
                     showFightWidgetPopup();
-                } else if (keycode == 48) {
-                    triangleInstancePlayerOne.transform.rotate(new Vector3(0, 1, 0), 10f);
-                } else if (keycode == 35) {
-                    triangleInstancePlayerOne.transform.rotate(new Vector3(0, 1, 0), -10f);
+                } else if (keycode == 150) {
+                    rotatePositionPlayer();
                 } else if (keycode == Input.Keys.ESCAPE) {
                         showQuitPopup();
                         return true;
