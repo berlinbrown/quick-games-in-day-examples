@@ -23,7 +23,6 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import java.util.Random;
 
-
 /**
  * Basic graphics example framework in Java Graphics 2D, render line and block dancing up and down.
  * Conway's Game of Life cellular automata with proper evolution.
@@ -139,14 +138,22 @@ public class RenderBasicGraphics {
         private boolean[][] nextCells;
         private java.util.List<CellEntity> activeEntities = new java.util.ArrayList<>();
 
-        private int randY = 180;
-        private int randY2Box = 220;
+        private int randY = 160;
+        private int randY2Box = 120;
 
         // Player box position
         private int playerX = 100;
         private int playerY = 100;
-        private final int playerSize = 30;
+        private final int playerSize = 20;
         private final int playerSpeed = 10;
+
+        // Observer entity (fits one cell in the cellular grid)
+        private int observerRow = 0;
+        private int observerCol = 0;
+        // Direction: 1 = moving right, -1 = moving left
+        private int observerDir = 1;
+        // Food resource counter collected by observer
+        private double foodResources = 0.0;
 
         // Frame counting and FPS tracking
         private long frameCount = 0;
@@ -163,6 +170,11 @@ public class RenderBasicGraphics {
             gridCols = (maxWidth - 2 * gridMargin) / cellSize;
             cells = new boolean[gridRows][gridCols];
             nextCells = new boolean[gridRows][gridCols];
+
+            // Initialize observer to middle row so it's visible immediately
+            observerRow = gridRows / 2;
+            observerCol = 0;
+            observerDir = 1;
 
             // Initialize with random pattern
             Random random = new Random();
@@ -210,6 +222,19 @@ public class RenderBasicGraphics {
                 // For each update, change Y to random position
                 randY = random.nextInt(280);
                 randY2Box = random.nextInt(280);
+                // Advance observer position horizontally within grid bounds
+                updateObserverPosition();
+                // Check for interaction with alive cell at observer position
+                if (observerRow >= 0 && observerRow < gridRows && observerCol >= 0 && observerCol < gridCols) {
+                    if (cells[observerRow][observerCol]) {
+                        // Collect food and consume the cell so it's not repeatedly counted
+                        foodResources += 0.5;
+                        cells[observerRow][observerCol] = false;
+                            // Remove matching active entity immediately so HUD and collision reflect change
+                            activeEntities.removeIf(e -> e.getGridRow() == observerRow && e.getGridCol() == observerCol);
+                            System.out.println("Observer collected food at (" + observerRow + "," + observerCol + ") total=" + foodResources);
+                    }
+                }
                 System.out.println("Random Y position at " + randY + " // " + randY2Box + " // playerX " + playerX);
 
                 if (!EventQueue.isDispatchThread()) {
@@ -224,6 +249,27 @@ public class RenderBasicGraphics {
                     }
                 }
             }, 0, 200, TimeUnit.MILLISECONDS);
+        }
+
+        /**
+         * Advance observer horizontally and bounce at grid edges.
+         */
+        private void updateObserverPosition() {
+            // Ensure observerRow is set (init after gridRows available)
+            if (observerRow == 0) {
+                observerRow = gridRows / 2; // middle row by default
+                observerCol = 0;
+                observerDir = 1;
+            }
+
+            observerCol += observerDir;
+            if (observerCol >= (gridCols - 1)) {
+                observerCol = gridCols - 1;
+                observerDir = -1;
+            } else if (observerCol <= 0) {
+                observerCol = 0;
+                observerDir = 1;
+            }
         }
 
         /**
@@ -248,15 +294,29 @@ public class RenderBasicGraphics {
             // Use Graphics2D for enhanced rendering with geometric shapes
             g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g2d.setColor(Color.blue);
-            g2d.fill(new Rectangle2D.Double(200, 150, 220, randY2Box));
+            g2d.fill(new Rectangle2D.Double(200, 150, 120, randY2Box));
         }
 
         /**
          * Render the player-controlled green box.
          */
         public void renderPlayer(final Graphics2D g2d) {
-            g2d.setColor(Color.green);
+            // Filled player box
+            g2d.setColor(Color.darkGray);
             g2d.fill(new Rectangle2D.Double(playerX, playerY, playerSize, playerSize));
+
+            // Black outline around the player box so it stands out
+            g2d.setColor(Color.red);
+            g2d.setStroke(new BasicStroke(2.0f));
+            g2d.draw(new Rectangle2D.Double(playerX, playerY, playerSize, playerSize));
+
+            // Draw a short line anchored to the player's right-middle so the line
+            // moves together with the player. Use `randY` to vary vertical offset.
+            final double startX = playerX + playerSize;
+            final double startY = playerY + (playerSize / 2.0);
+            final double endX = playerX + playerSize + 60;
+            final double endY = playerY + (playerSize / 2.0) + ((randY % 40) - 20);
+            g2d.draw(new Line2D.Double(startX, startY, endX, endY));
         }
 
         /**
@@ -415,6 +475,9 @@ public class RenderBasicGraphics {
             // Render cellular automata grid and cells
             this.renderCellularAutomata(g2dOffscreen);
 
+            // Render observer (one-cell entity that moves horizontally)
+            this.renderObserver(g2dOffscreen);
+
             // Render all dynamic content to offscreen buffer
             this.renderPlayer(g2dOffscreen);
 
@@ -440,6 +503,27 @@ public class RenderBasicGraphics {
             g2dOffscreen.drawString("Conway's Game of Life - " + gridRows + "x" + gridCols + " cells", 20, 620);
             g2dOffscreen.drawString("Player: (" + playerX + ", " + playerY + ") - Use Arrow Keys", 20, 620 + 14);
             g2dOffscreen.drawString("Total Frames: " + frameCount + " | FPS: " + String.format("%.1f", currentFps), 20, 620 + 28);
+            g2dOffscreen.drawString("Observer Food: " + String.format("%.1f", foodResources), 20, 620 + 42);
+        }
+
+        /**
+         * Render a dark blue observer that occupies one grid cell and moves horizontally.
+         */
+        public void renderObserver(final Graphics2D g2d) {
+            if (gridRows <= 0 || gridCols <= 0) return;
+
+            // Calculate pixel position aligned to the grid
+            final int x = gridMargin + observerCol * cellSize;
+            final int y = gridMargin + observerRow * cellSize;
+
+            // Filled dark blue cell (same size as cellular automata cells)
+            g2d.setColor(new Color(0, 0, 220));
+            g2d.fillRect(x + 1, y + 1, cellSize - 1, cellSize - 1);
+
+            // Thin black outline so it stands out
+            g2d.setColor(Color.black);
+            g2d.setStroke(new BasicStroke(1.5f));
+            g2d.drawRect(x + 1, y + 1, cellSize - 1, cellSize - 1);
         }
 
     } // End of the class //
