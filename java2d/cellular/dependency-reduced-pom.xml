@@ -113,11 +113,11 @@
   </build>
   <properties>
     <org.springframework.version>4.3.8.RELEASE</org.springframework.version>
-    <maven-surefire-plugin-version>2.12.4</maven-surefire-plugin-version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven-compiler-plugin-version>3.3</maven-compiler-plugin-version>
-    <java.target.version>21</java.target.version>
     <jacoco.version>0.8.12</jacoco.version>
     <java.source.version>21</java.source.version>
+    <maven-surefire-plugin-version>2.12.4</maven-surefire-plugin-version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <java.target.version>21</java.target.version>
   </properties>
 </project>
