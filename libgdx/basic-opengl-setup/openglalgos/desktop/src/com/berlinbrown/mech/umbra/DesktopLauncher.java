@@ -11,6 +11,7 @@ import com.berlinbrown.mech.umbra.MechUmbraGdxAlgosSim;
 public class DesktopLauncher {
 	public static void main (String[] arg) {
 		final Lwjgl3ApplicationConfiguration config = new Lwjgl3ApplicationConfiguration();
+		config.useVsync(false);
 		config.setForegroundFPS(60);
 		config.setWindowedMode(1000, 720);
 		config.setResizable(false); // or false to lock size

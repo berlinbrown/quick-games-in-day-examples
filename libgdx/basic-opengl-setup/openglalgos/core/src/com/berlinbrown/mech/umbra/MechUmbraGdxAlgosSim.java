@@ -36,7 +36,6 @@ import com.berlinbrown.mech.umbra.screens.MainHUDScreen;
 
 import java.util.ArrayList;
 import java.util.List;
-
 import com.badlogic.gdx.math.Vector3;
 import com.berlinbrown.mech.umbra.screens.QuitPopupWidget;
 
@@ -525,12 +524,13 @@ public class MechUmbraGdxAlgosSim implements ApplicationListener {
             }
 
             onOffMsg = !onOffMsg;
-
+            /*
             if (onOffMsg) {
                 lastMessage = "Attack attack !!! ";
             } else {
                 lastMessage = "";
             }
+            */
         }
     }
 
@@ -596,7 +596,7 @@ public class MechUmbraGdxAlgosSim implements ApplicationListener {
         uiStage.draw();
         Gdx.gl.glDepthMask(true);
     }
-
+ 
     @Override
     public void dispose() {
         modelBatch.dispose();

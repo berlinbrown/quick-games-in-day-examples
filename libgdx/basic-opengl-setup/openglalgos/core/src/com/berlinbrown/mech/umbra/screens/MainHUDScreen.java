@@ -6,7 +6,6 @@ package com.berlinbrown.mech.umbra.screens;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
@@ -59,22 +58,19 @@ public class MainHUDScreen implements Screen {
         labelTTF.setPosition(10, Gdx.graphics.getHeight() - 40);
 
         final StringBuilder buf = new StringBuilder();
-        buf.append("[Umbra Home] FPS: " + Gdx.graphics.getFramesPerSecond() + MechUmbraGdxAlgosSim.timeElapsed + " -- "
-                + MechUmbraGdxAlgosSim.counter + " -- " + MechUmbraGdxAlgosSim.lastMessage);
+        buf.append("[Umbra Home] FPS: ")
+            .append(Gdx.graphics.getFramesPerSecond())
+            .append(" | t=")
+            .append(String.format("%.3f", MechUmbraGdxAlgosSim.timeElapsed))
+            .append(" -- ")
+            .append(MechUmbraGdxAlgosSim.counter)
+            .append(" -- ")
+            .append(MechUmbraGdxAlgosSim.lastMessage);
         buf.append("\n");
-        //buf.append("1 ----- Player Status : \n");
-
-        //buf.append("2 { Hero Strength : " + MechUmbraGdxRPGGame.hero.strength).append("\n");
-        //buf.append("3 { Hero Constitution : " + MechUmbraGdxRPGGame.hero.constitution).append("\n");
-        //buf.append("4 { Hero Dexterity : " + MechUmbraGdxRPGGame.hero.dexterity).append("\n");
-        //buf.append("5 { Hero Defense : " +  MechUmbraGdxRPGGame.hero.defense).append("\n");
-        ///buf.append("6 { Hero Attack : " + MechUmbraGdxRPGGame.hero.attackDamage).append("\n");
         buf.append("7 { Hero Health Points-HP : " + MechUmbraGdxAlgosSim.hero.healthPoints);
 
         buf.append("---- 9 { Enemy Strength : " + MechUmbraGdxAlgosSim.enemy.strength).append("\n");
         buf.append("10 { Enemy Constitution : " + MechUmbraGdxAlgosSim.enemy.constitution).append("\n");
-        //buf.append("11 { Enemy Dexterity : " + MechUmbraGdxRPGGame.enemy.dexterity).append("\n");
-        //buf.append("12 { Enemy Defense : " +  MechUmbraGdxRPGGame.enemy.defense).append("\n");
         buf.append("14 { Enemy Health Points-HP : " + MechUmbraGdxAlgosSim.enemy.healthPoints);
 
         labelTTF.setText(buf.toString());
